@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-9">
+<title>Catalogue Vintage</title>
+<style>
+  body { text-align:center; font-family:Arial,sans-serif; }
+  #catalogue { width:800px; cursor:pointer; border:1px solid #ccc; }
+  #zoom {
+    display:none;
+    position:fixed;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:90vh;          /* largeur = hauteur pour garder un carré */
+    height:90vh;         /* 90% de la hauteur de l'écran */
+    overflow:hidden;
+    border:2px solid #333;
+    background:#fff;
+    z-index:100;
+    cursor:grab;
+  }
+  #zoom img { 
+    position:absolute; 
+    width:4184px; 
+    height:8000px; 
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+</style>
+</head>
+<body>
+
+<h1>Catalogue Vintage</h1>
+
+<img id="catalogue" src="catalogue.png" alt="Catalogue vintage">
+
+<div id="zoom">
+  <img id="zoom-img" src="catalogue.png">
+</div>
+
+<script>
+const catalogue = document.getElementById('catalogue');
+const zoom = document.getElementById('zoom');
+const zoomImg = document.getElementById('zoom-img');
+
+let imgLeft = 0, imgTop = 0;
+let isDragging = false;
+let startX = 0, startY = 0;
+
+function updateZoomSize() {
+  const size = window.innerHeight * 0.9; // 90% de la hauteur
+  zoom.style.width = size + 'px';
+  zoom.style.height = size + 'px';
+}
+
+// Initialisation
+updateZoomSize();
+window.addEventListener('resize', updateZoomSize);
+
+catalogue.addEventListener('click', e => {
+  zoom.style.display = 'block';
+  
+  const rect = catalogue.getBoundingClientRect();
+  const scaleX = 4184 / rect.width;
+  const scaleY = 8000 / rect.height;
+
+  const clickX = (e.clientX - rect.left) * scaleX;
+  const clickY = (e.clientY - rect.top) * scaleY;
+
+  const zoomSize = zoom.offsetWidth; // largeur = hauteur = carré
+
+  imgLeft = -clickX + zoomSize/2;
+  imgTop = -clickY + zoomSize/2;
+
+  imgLeft = Math.min(0, Math.max(imgLeft, zoomSize - 4184));
+  imgTop = Math.min(0, Math.max(imgTop, zoomSize - 8000));
+
+  zoomImg.style.left = imgLeft + 'px';
+  zoomImg.style.top = imgTop + 'px';
+});
+
+// Drag pour déplacer l'image
+zoom.addEventListener('mousedown', e => {
+  isDragging = true;
+  startX = e.clientX;
+  startY = e.clientY;
+  zoom.style.cursor = 'grabbing';
+});
+
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+  zoom.style.cursor = 'grab';
+});
+
+document.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+  startX = e.clientX;
+  startY = e.clientY;
+
+  imgLeft += dx;
+  imgTop += dy;
+
+  const zoomSize = zoom.offsetWidth;
+  imgLeft = Math.min(0, Math.max(imgLeft, zoomSize - 7844));
+  imgTop = Math.min(0, Math.max(imgTop, zoomSize - 14999));
+
+  zoomImg.style.left = imgLeft + 'px';
+  zoomImg.style.top = imgTop + 'px';
+});
+
+// Scroll pour déplacer aussi
+zoom.addEventListener('wheel', e => {
+  e.preventDefault();
+  
+  imgLeft -= e.deltaX;
+  imgTop  -= e.deltaY;
+
+  const zoomSize = zoom.offsetWidth;
+  imgLeft = Math.min(0, Math.max(imgLeft, zoomSize - 4184));
+  imgTop = Math.min(0, Math.max(imgTop, zoomSize - 8000));
+
+  zoomImg.style.left = imgLeft + 'px';
+  zoomImg.style.top = imgTop + 'px';
+}, { passive: false });
+
+// Quitter en cliquant sur l'image
+zoomImg.addEventListener('click', () => {
+  zoom.style.display = 'none';
+});
+</script>
+
+</body>
+</html>
