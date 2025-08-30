@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Catalogue Vintage</title>
+<style>
+  body { text-align:center; font-family:Arial,sans-serif; margin:0; padding:0; }
+  #catalogue { width:800px; cursor:pointer; border:1px solid #ccc; margin-top:20px; }
+  #zoom {
+    display:none;
+    position:fixed;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:100vw;      /* largeur plein écran */
+    height:100vh;     /* hauteur plein écran */
+    overflow:hidden;
+    border:2px solid #333;
+    background:#fff;
+    z-index:100;
+  }
+  #zoom img { 
+    position:absolute; 
+    width:7844px; 
+    height:14999px; 
+    cursor:grab; 
+  }
+  #zoom img.dragging { cursor:grabbing; }
+</style>
+</head>
+<body>
+
+<h1>Catalogue Vintage</h1>
+
+<img id="catalogue" src="catalogue.png" alt="Catalogue vintage">
+
+<div id="zoom">
+  <img id="zoom-img" src="catalogue.png">
+</div>
+
+<script>
+const catalogue = document.getElementById('catalogue');
+const zoom = document.getElementById('zoom');
+const zoomImg = document.getElementById('zoom-img');
+
+let isDragging = false;
+let startX, startY, imgX, imgY;
+
+catalogue.addEventListener('click', e => {
+  zoom.style.display = 'block';
+  
+  const rect = catalogue.getBoundingClientRect();
+  const scaleX = 7844 / rect.width;
+  const scaleY = 14999 / rect.height;
+
+  const clickX = (e.clientX - rect.left) * scaleX;
+  const clickY = (e.clientY - rect.top) * scaleY;
+
+  let left = -clickX + 920/2;
+  let top = -clickY + 1600/2;
+
+  left = Math.min(0, Math.max(left, 920 - 7844));
+  top = Math.min(0, Math.max(top, 1600 - 14999));
+
+  zoomImg.style.left = left + 'px';
+  zoomImg.style.top = top + 'px';
+});
+
+// Drag avec la souris
+zoomImg.addEventListener('mousedown', e => {
+  isDragging = true;
+  zoomImg.classList.add('dragging');
+  startX = e.clientX;
+  startY = e.clientY;
+  imgX = parseInt(zoomImg.style.left || 0);
+  imgY = parseInt(zoomImg.style.top || 0);
+});
+
+document.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  let dx = e.clientX - startX;
+  let dy = e.clientY - startY;
+  let newLeft = imgX + dx;
+  let newTop = imgY + dy;
+
+  newLeft = Math.min(0, Math.max(newLeft, 920 - 7844));
+  newTop = Math.min(0, Math.max(newTop, 1600 - 14999));
+
+  zoomImg.style.left = newLeft + 'px';
+  zoomImg.style.top = newTop + 'px';
+});
+
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+  zoomImg.classList.remove('dragging');
+});
+
+// Clic sur l'image pour fermer le zoom
+zoomImg.addEventListener('click', () => {
+  zoom.style.display = 'none';
+});
+</script>
+
+</body>
+</html>
